@@ -5,7 +5,7 @@ Formatter Json para testes em Elixir
 Adicionar no `test_helper.exs`
 
 ```elixir
-  ExUnit.configure formatters: [ExUnit.CLIFormatter, JsonFormatter]
+  ExUnit.configure formatters: [ExUnit.CLIFormatter, JsonResponse]
 ```
 
 Adicionar o Arquivo do formater de preferência na pasta `support` e adicionar a configuração no `mix.exs` para carregar a pasta junto com os testes

@@ -1,4 +1,4 @@
-defmodule JsonFormatter do
+defmodule JsonResponse do
   use GenServer
 
   def init(_opts) do

@@ -1,8 +1,10 @@
 defmodule JsonResponse do
   use GenServer
 
+  @empty_report %{total: 0, passed: 0, failed: 0}
+
   def init(_opts) do
-    {:ok, %{passed: [], skiped: [], excluded: [], failed: [], invalid: []}}
+    {:ok, %{passed: [], failed: []}}
   end
 
   def handle_cast({:suite_started, _opts}, config) do
@@ -13,6 +15,7 @@ defmodule JsonResponse do
     contents =
       config
       |> Map.new(fn {k, v} -> {k, format_tests(v)} end)
+      |> Enum.reduce(@empty_report, fn {key, value}, acc -> handle_insert(acc, key, value) end)
       |> Jason.encode!(pretty: true)
 
     File.write!("results.json", contents)
@@ -35,23 +38,19 @@ defmodule JsonResponse do
     {:noreply, Map.update!(config, :passed, fn acc -> [test | acc] end)}
   end
 
-  def handle_cast({:test_finished, %ExUnit.Test{state: {:skip, _}} = test}, config) do
-    {:noreply, Map.update!(config, :skiped, fn acc -> [test | acc] end)}
-  end
-
-  def handle_cast({:test_finished, %ExUnit.Test{state: {:excluded, _}} = test}, config) do
-    {:noreply, Map.update!(config, :excluded, fn acc -> [test | acc] end)}
-  end
-
   def handle_cast({:test_finished, %ExUnit.Test{state: {:failed, _failed}} = test}, config) do
     {:noreply, Map.update!(config, :failed, fn acc -> [test | acc] end)}
   end
 
-  def handle_cast({:test_finished, %ExUnit.Test{state: {:invalid, _module}} = test}, config) do
-    {:noreply, Map.update!(config, :invalid, fn acc -> [test | acc] end)}
-  end
-
   def handle_cast(_event, config), do: {:noreply, config}
+
+  defp handle_insert(acc, key, value) do
+    count = Enum.count(value)
+    acc
+    |> Map.put(key, count)
+    |> Map.put(:total, acc.total + count)
+    |> IO.inspect()
+  end
 
   defp format_tests(tests) do
     Enum.map(tests, fn test ->

@@ -3,6 +3,6 @@ defmodule JsonResponseTest do
   doctest JsonResponse
 
   test "greets the world" do
-    assert JsonResponse.hello() == :world
+    assert :world == :world
   end
 end
